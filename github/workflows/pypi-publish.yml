@@ -1,8 +1,9 @@
 name: Publish Python Package to PyPI
 
 on:
-  release:
-    types: [published] # Trigger only when a new GitHub release is published
+  push:
+    branches:
+      - master # Triggers on every push to master
 
 jobs:
   build-and-publish:
