@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-# See https://confluence.govcloud.dk/pages/viewpage.action?pageId=26476616
+# See https://opendatadocs.dmi.govcloud.dk/en/Data/Meteorological_Observation_Data#parameters
 class Parameter(Enum):
     TempDry = "temp_dry"
     TempDew = "temp_dew"
@@ -52,7 +52,7 @@ class Parameter(Enum):
     LeavHumDurPast1h = "leav_hum_dur_past1h"
 
 
-# https://confluence.govcloud.dk/pages/viewpage.action?pageId=41717444
+# https://opendatadocs.dmi.govcloud.dk/en/Data/Climate_Data#:~:text=other%20meteorological%20phenomena-,%C2%B6,-Parameters
 class ClimateDataParameter(Enum):
     MeanTemp = "mean_temp"
     MeanDailyMaxTemp = "mean_daily_max_temp"
@@ -105,3 +105,11 @@ class ClimateDataParameter(Enum):
     TempSoil_30 = "temp_soil_30"
     LeafMoisture = "leaf_moisture"
     VapourPressureDeficitMean = "vapour_pressure_deficit_mean"
+
+
+# https://opendatadocs.dmi.govcloud.dk/en/Data/Oceanographic_Observation_Data#parameters
+class OceanographicDataParameter(Enum):
+    SealevDvr = "sealev_dvr"
+    SealevLn = "sealev_ln"
+    SeaReg = "sea_reg"
+    Tw = "tw"

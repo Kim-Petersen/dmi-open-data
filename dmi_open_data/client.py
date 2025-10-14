@@ -1,10 +1,14 @@
 from datetime import datetime
-from typing import List, Dict, Optional, Any, Union
+from typing import Any, Optional, Union, cast
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_random
 
-from dmi_open_data.enums import Parameter, ClimateDataParameter
+from dmi_open_data.enums import (
+    ClimateDataParameter,
+    OceanographicDataParameter,
+    Parameter,
+)
 from dmi_open_data.utils import distance
 
 
@@ -23,12 +27,12 @@ class DMIOpenDataClient:
         self.version = version
 
     def base_url(self, api: str):
-        if api not in ("climateData", "metObs"):
+        if api not in ("climateData", "metObs", "oceanObs"):
             raise NotImplementedError(f"Following api is not supported yet: {api}")
         return self._base_url.format(version=self.version, api=api)
 
-    @retry(stop=stop_after_attempt(10), wait=wait_random(min=0.1, max=1.00))
-    def _query(self, api: str, service: str, params: Dict[str, Any], **kwargs):
+    @retry(stop=stop_after_attempt(10), wait=wait_random(min=0.1, max=1.00), reraise=True)
+    def _query(self, api: str, service: str, params: dict[str, Any], **kwargs):
         res = requests.get(
             url=f"{self.base_url(api=api)}/{service}",
             params={
@@ -41,14 +45,10 @@ class DMIOpenDataClient:
         http_status_code = data.get("http_status_code", 200)
         if http_status_code != 200:
             message = data.get("message")
-            raise ValueError(
-                f"Failed HTTP request with HTTP status code {http_status_code} and message: {message}"
-            )
+            raise ValueError(f"Failed HTTP request with HTTP status code {http_status_code} and message: {message}")
         return res.json()
 
-    def get_stations(
-        self, limit: Optional[int] = 10000, offset: Optional[int] = 0
-    ) -> List[Dict[str, Any]]:
+    def get_stations(self, limit: Optional[int] = 10000, offset: Optional[int] = 0) -> list[dict[str, Any]]:
         """Get DMI stations.
 
         Args:
@@ -58,7 +58,7 @@ class DMIOpenDataClient:
                 before returning matching objects. Defaults to 0.
 
         Returns:
-            List[Dict[str, Any]]: List of DMI stations.
+            list[dict[str, Any]]: List of DMI stations.
         """
         res = self._query(
             api="metObs",
@@ -78,13 +78,13 @@ class DMIOpenDataClient:
         to_time: Optional[datetime] = None,
         limit: Optional[int] = 10000,
         offset: Optional[int] = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get raw DMI observation.
 
         Args:
             parameter_id (Optional[Parameter], optional): Returns observations for a specific parameter.
                 Defaults to None.
-            station_id (Optional[int], optional): Search for a specific station using the stationID.
+            station_id (Optional[str], optional): Search for a specific station using the stationID.
                 Defaults to None.
             from_time (Optional[datetime], optional): Returns only objects with a "timeObserved" equal
                 to or after a given timestamp. Defaults to None.
@@ -96,7 +96,7 @@ class DMIOpenDataClient:
                 before returning matching objects. Defaults to 0.
 
         Returns:
-            List[Dict[str, Any]]: List of raw DMI observations.
+            list[dict[str, Any]]: List of raw DMI observations.
         """
         res = self._query(
             api="metObs",
@@ -104,9 +104,7 @@ class DMIOpenDataClient:
             params={
                 "parameterId": None if parameter is None else parameter.value,
                 "stationId": station_id,
-                "datetime": _construct_datetime_argument(
-                    from_time=from_time, to_time=to_time
-                ),
+                "datetime": _construct_datetime_argument(from_time=from_time, to_time=to_time),
                 "limit": limit,
                 "offset": offset,
             },
@@ -116,13 +114,13 @@ class DMIOpenDataClient:
     def get_climate_data(
         self,
         parameter: Optional[ClimateDataParameter] = None,
-        station_id: Optional[int] = None,
+        station_id: Optional[str] = None,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         time_resolution: Optional[str] = None,
         limit: Optional[int] = 10000,
         offset: Optional[int] = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get raw DMI climate data.
 
         Args:
@@ -142,7 +140,7 @@ class DMIOpenDataClient:
                 before returning matching objects. Defaults to 0.
 
         Returns:
-            List[Dict[str, Any]]: List of raw DMI observations.
+            list[dict[str, Any]]: List of raw DMI observations.
         """
         res = self._query(
             api="climateData",
@@ -150,9 +148,7 @@ class DMIOpenDataClient:
             params={
                 "parameterId": None if parameter is None else parameter.value,
                 "stationId": station_id,
-                "datetime": _construct_datetime_argument(
-                    from_time=from_time, to_time=to_time
-                ),
+                "datetime": _construct_datetime_argument(from_time=from_time, to_time=to_time),
                 "timeResolution": time_resolution,
                 "limit": limit,
                 "offset": offset,
@@ -160,11 +156,56 @@ class DMIOpenDataClient:
         )
         return res.get("features", [])
 
-    def list_parameters(self) -> List[Dict[str, Union[str, Parameter]]]:
+    def get_ocean_data(
+        self,
+        parameter: Optional[OceanographicDataParameter] = None,
+        station_id: Optional[str] = None,
+        from_time: Optional[datetime] = None,
+        to_time: Optional[datetime] = None,
+        limit: Optional[int] = 10000,
+        offset: Optional[int] = 0,
+    ) -> list[dict[str, Any]]:
+        """Get raw DMI oceanographic data.
+
+        Args:
+            parameter_id (Optional[OceanographicDataParameter], optional): Returns observations for a specific parameter.
+                Defaults to None.
+            station_id (Optional[str], optional): Search for a specific station using the stationID.
+                Defaults to None.
+            from_time (Optional[datetime], optional): Returns only objects with a "timeObserved" equal
+                to or after a given timestamp. Defaults to None.
+            to_time (Optional[datetime], optional): Returns only objects with a "timeObserved" before
+                (not including) a given timestamp. Defaults to None.
+            time_resolution (Optional[str], optional): Filter by time resolution (hour/day/month/year),
+                ie. what type of time interval the station value represents
+            limit (Optional[int], optional): Specify a maximum number of observations
+                you want to be returned. Defaults to 10000.
+            offset (Optional[int], optional): Specify the number of observations that should be skipped
+                before returning matching objects. Defaults to 0.
+
+        Returns:
+            list[dict[str, Any]]: List of raw DMI observations.
+        """
+        res = self._query(
+            api="oceanObs",
+            service="collections/observation/items",
+            params={
+                "parameterId": None if parameter is None else parameter.value,
+                "stationId": station_id,
+                "datetime": _construct_datetime_argument(from_time=from_time, to_time=to_time),
+                "limit": limit,
+                "offset": offset,
+            },
+        )
+        return res.get("features", [])
+
+    def list_parameters(
+        self,
+    ) -> list[dict[str, Union[str, Parameter | ClimateDataParameter | OceanographicDataParameter]]]:
         """List available observation parameters.
 
         Returns:
-            List[Dict[str, Union[str, Parameter]]]: List of dictionaries
+            list[dict[str, Union[str, Parameter]]]: List of dictionaries
                 containing information about each available observations
                 parameter.
         """
@@ -174,11 +215,11 @@ class DMIOpenDataClient:
                 "value": parameter.value,
                 "enum": parameter,
             }
-            for parameter in Parameter
+            for parameter in list(Parameter) + list(ClimateDataParameter) + list(OceanographicDataParameter)
         ]
 
     @staticmethod
-    def get_parameter(parameter_id: str) -> Parameter:
+    def get_parameter(parameter_id: str) -> Parameter | ClimateDataParameter | OceanographicDataParameter:
         """Get parameter enum from DMI parameter id.
 
         Args:
@@ -187,11 +228,21 @@ class DMIOpenDataClient:
         Returns:
             Parameter: Parameter enum object.
         """
-        return Parameter(parameter_id)
+        if parameter_id in Parameter.__members__:
+            return Parameter[parameter_id]
+        if parameter_id in Parameter._value2member_map_:
+            return Parameter(parameter_id)
+        if parameter_id in ClimateDataParameter.__members__:
+            return ClimateDataParameter[parameter_id]
+        if parameter_id in ClimateDataParameter._value2member_map_:
+            return ClimateDataParameter(parameter_id)
+        if parameter_id in OceanographicDataParameter.__members__:
+            return OceanographicDataParameter[parameter_id]
+        if parameter_id in OceanographicDataParameter._value2member_map_:
+            return OceanographicDataParameter(parameter_id)
+        raise ValueError(f"Unknown parameter id: {parameter_id}")
 
-    def get_closest_station(
-        self, latitude: float, longitude: float
-    ) -> List[Dict[str, Any]]:
+    def get_closest_station(self, latitude: float, longitude: float) -> dict[str, Any] | None:
         """Get closest weather station from given coordinates.
 
         Args:
@@ -199,7 +250,7 @@ class DMIOpenDataClient:
             longitude (float): Longitude coordinate.
 
         Returns:
-            List[Dict[str, Any]]: Closest weather station.
+            list[dict[str, Any]]: Closest weather station.
         """
         stations = self.get_stations()
         closest_station, closests_dist = None, 1e10
@@ -226,11 +277,13 @@ class DMIOpenDataClient:
 
 def _construct_datetime_argument(
     from_time: Optional[datetime] = None, to_time: Optional[datetime] = None
-) -> str:
+) -> str | None:
     if from_time is None and to_time is None:
         return None
     if from_time is not None and to_time is None:
         return f"{from_time.isoformat()}Z"
     if from_time is None and to_time is not None:
         return f"{to_time.isoformat()}Z"
+    from_time = cast(datetime, from_time)
+    to_time = cast(datetime, to_time)
     return f"{from_time.isoformat()}Z/{to_time.isoformat()}Z"

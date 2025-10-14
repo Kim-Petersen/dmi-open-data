@@ -1,10 +1,9 @@
 from datetime import datetime
-from math import cos, asin, sqrt, pi
-
+from math import asin, cos, pi, sqrt
 
 # Constants
-CONST_EARTH_RADIUS = 6371       # km
-CONST_EARTH_DIAMETER = 12742    # km
+CONST_EARTH_RADIUS = 6371  # km
+CONST_EARTH_DIAMETER = 12742  # km
 EPOCH = datetime.utcfromtimestamp(0)
 
 

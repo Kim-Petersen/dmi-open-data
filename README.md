@@ -6,9 +6,10 @@ Weather data from Denmark and Greenland are publicly available through DMI's Ope
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.11+
 - API Key for **metObs v2** from [DMI Open Data](https://confluence.govcloud.dk/pages/viewpage.action?pageId=26476690)
 - (Optional) API Key for **climateData v2** from [DMI Open Data](https://confluence.govcloud.dk/display/FDAPI/Climate+data?src=contextnavpagetreemode)
+- (Optional) API Key for **oceanObs v2** from [DMI Open Data](https://confluence.govcloud.dk/display/FDAPI/Oceanographic+data?src=contextnavpagetreemode)
 
 ## Installation
 
@@ -22,7 +23,7 @@ $ pip install dmi-open-data
 from datetime import datetime
 import os
 
-from dmi_open_data import DMIOpenDataClient, Parameter, ClimateDataParameter
+from dmi_open_data import DMIOpenDataClient, Parameter, ClimateDataParameter, OceanographicDataParameter
 
 
 # Get 10 stations
@@ -64,6 +65,17 @@ climate_data = climate_data_client.get_climate_data(
     from_time=datetime(2021, 7, 20),
     to_time=datetime(2021, 7, 24),
     time_resolution='day',
+    limit=1000)
+
+# Init oceanographic data client
+ocean_data_client = DMIOpenDataClient(api_key=os.getenv('DMI_OCEAN_DATA_API_KEY'))
+
+# Get oceanographic data
+ocean_data = ocean_data_client.get_ocean_data(
+    parameter=OceanographicDataParameter.Tw,,
+    station_id="31061",
+    from_time=datetime(2025, 9, 8),
+    to_time=datetime(2025, 9, 10),
     limit=1000)
 ```
 
