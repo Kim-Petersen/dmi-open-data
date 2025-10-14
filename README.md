@@ -72,7 +72,7 @@ ocean_data_client = DMIOpenDataClient(api_key=os.getenv('DMI_OCEAN_DATA_API_KEY'
 
 # Get oceanographic data
 ocean_data = ocean_data_client.get_ocean_data(
-    parameter=OceanographicDataParameter.Tw,,
+    parameter=OceanographicDataParameter.Tw,
     station_id="31061",
     from_time=datetime(2025, 9, 8),
     to_time=datetime(2025, 9, 10),
