@@ -1,6 +1,6 @@
 import os
-import setuptools
 
+import setuptools
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -15,7 +15,7 @@ with open(os.path.join(DIR, "requirements.txt"), "r") as f:
 
 setuptools.setup(
     name="dmi-open-data",
-    version="0.1.2",
+    version="0.1.3",
     author="Lasse Regin Nielsen",
     author_email="lasseregin@gmail.com",
     description="Simple Python interface to the The Danish Meteorological Institute's (DMI) Open Data API metObs v2.",
@@ -29,7 +29,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.10",
     package_data={"": ["LICENSE", "requirements.txt"]},
     include_package_data=True,
 )

@@ -6,7 +6,7 @@ Weather data from Denmark and Greenland are publicly available through DMI's Ope
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.10+
 - API Key for **metObs v2** from [DMI Open Data](https://confluence.govcloud.dk/pages/viewpage.action?pageId=26476690)
 - (Optional) API Key for **climateData v2** from [DMI Open Data](https://confluence.govcloud.dk/display/FDAPI/Climate+data?src=contextnavpagetreemode)
 - (Optional) API Key for **oceanObs v2** from [DMI Open Data](https://confluence.govcloud.dk/display/FDAPI/Oceanographic+data?src=contextnavpagetreemode)
