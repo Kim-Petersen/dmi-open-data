@@ -79,10 +79,6 @@ ocean_data = ocean_data_client.get_ocean_data(
     limit=1000)
 ```
 
-## API Key
-
-API Key can be obtained for free at the [DMI Open Data](https://confluence.govcloud.dk/pages/viewpage.action?pageId=26476690).
-
 ## Tests
 
 Run tests
